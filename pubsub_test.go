@@ -229,3 +229,33 @@ func (s *Suite) TestMultiClose(c *check.C) {
 
 	ps.Shutdown()
 }
+
+const (
+	benchCapacity = 1
+	benchChanName = "test"
+	benchMessage  = "message"
+)
+
+func BenchmarkSub(b *testing.B) {
+	ps := New(benchCapacity)
+	defer ps.Shutdown()
+
+	ch := ps.Sub(benchChanName)
+	for i := 0; i < b.N; i++ {
+		ps.Pub(benchMessage, benchChanName)
+		<-ch
+	}
+}
+
+func BenchmarkMultiSub(b *testing.B) {
+	ps := New(benchCapacity)
+	defer ps.Shutdown()
+
+	ch1 := ps.Sub(benchChanName)
+	ch2 := ps.Sub(benchChanName)
+	for i := 0; i < b.N; i++ {
+		ps.Pub(benchMessage, benchChanName)
+		<-ch1
+		<-ch2
+	}
+}
